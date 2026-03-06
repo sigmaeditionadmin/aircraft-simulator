@@ -47,7 +47,7 @@ const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth,window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// Sun light
+// Sun
 const sun = new THREE.DirectionalLight(0xffffff,1);
 sun.position.set(100,200,100);
 scene.add(sun);
@@ -139,7 +139,7 @@ plane.position.set(0,10,0);
 
 scene.add(plane);
 
-// Camera
+// Camera start
 camera.position.set(0,5,-10);
 
 // Controls
@@ -147,7 +147,7 @@ const keys = {};
 document.addEventListener("keydown",e=>keys[e.key]=true);
 document.addEventListener("keyup",e=>keys[e.key]=false);
 
-// Flight physics
+// Flight variables
 let speed = 0.2;
 let throttle = 0.2;
 
@@ -166,20 +166,20 @@ speed = throttle;
 plane.translateZ(speed);
 
 // Lift
-plane.position.y += speed*0.05;
+plane.position.y += speed*0.03;
 
 // Gravity
 plane.position.y -= 0.02;
 
-// Controls
-if(keys["ArrowUp"]) plane.rotation.x += 0.02;
-if(keys["ArrowDown"]) plane.rotation.x -= 0.02;
+// Easy controls
 
-if(keys["a"]) plane.rotation.y += 0.02;
-if(keys["d"]) plane.rotation.y -= 0.02;
+// Turn
+if(keys["a"]) plane.rotation.y += 0.03;
+if(keys["d"]) plane.rotation.y -= 0.03;
 
-if(keys["q"]) plane.rotation.z += 0.02;
-if(keys["e"]) plane.rotation.z -= 0.02;
+// Up / Down
+if(keys[" "]) plane.position.y += 0.4;
+if(keys["Shift"]) plane.position.y -= 0.4;
 
 // Prevent underground
 if(plane.position.y < 3){
