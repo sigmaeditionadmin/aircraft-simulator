@@ -6,6 +6,7 @@
 
 <style>
 body{margin:0;overflow:hidden;font-family:monospace;}
+
 #hud{
 position:absolute;
 top:10px;
@@ -46,7 +47,7 @@ const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth,window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// Light
+// Sun light
 const sun = new THREE.DirectionalLight(0xffffff,1);
 sun.position.set(100,200,100);
 scene.add(sun);
@@ -78,17 +79,32 @@ scene.add(mountain);
 
 }
 
-// Clouds
-for(let i=0;i<40;i++){
+// Fluffy Clouds
+for(let i=0;i<30;i++){
 
-const cloud = new THREE.Mesh(
-new THREE.SphereGeometry(5+Math.random()*10,8,8),
+const cloud = new THREE.Group();
+const puffCount = 5 + Math.floor(Math.random()*5);
+
+for(let j=0;j<puffCount;j++){
+
+const puff = new THREE.Mesh(
+new THREE.SphereGeometry(5 + Math.random()*6,8,8),
 new THREE.MeshLambertMaterial({color:0xffffff})
 );
 
+puff.position.set(
+(Math.random()-0.5)*15,
+Math.random()*4,
+(Math.random()-0.5)*15
+);
+
+cloud.add(puff);
+
+}
+
 cloud.position.set(
 (Math.random()-0.5)*1500,
-80+Math.random()*80,
+80 + Math.random()*80,
 (Math.random()-0.5)*1500
 );
 
@@ -103,14 +119,12 @@ const body = new THREE.Mesh(
 new THREE.BoxGeometry(1,0.5,4),
 new THREE.MeshLambertMaterial({color:0xff3333})
 );
-
 plane.add(body);
 
 const wings = new THREE.Mesh(
 new THREE.BoxGeometry(6,0.2,1),
 new THREE.MeshLambertMaterial({color:0xff3333})
 );
-
 plane.add(wings);
 
 const tail = new THREE.Mesh(
@@ -119,7 +133,6 @@ new THREE.MeshLambertMaterial({color:0xff3333})
 );
 
 tail.position.set(0,0.5,-2);
-
 plane.add(tail);
 
 plane.position.set(0,10,0);
@@ -142,7 +155,7 @@ function animate(){
 
 requestAnimationFrame(animate);
 
-// Throttle control
+// Throttle
 if(keys["w"]) throttle += 0.005;
 if(keys["s"]) throttle -= 0.005;
 
