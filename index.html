@@ -47,7 +47,7 @@ const renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(window.innerWidth,window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// Sun
+// Light
 const sun = new THREE.DirectionalLight(0xffffff,1);
 sun.position.set(200,300,200);
 scene.add(sun);
@@ -153,7 +153,6 @@ document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
 let throttle = 0.3;
 let speed = 0.3;
 
-// Animation
 function animate(){
 
 requestAnimationFrame(animate);
@@ -165,29 +164,39 @@ if(keys["s"]) throttle -= 0.004;
 throttle=Math.max(0.1,Math.min(1,throttle));
 speed=throttle;
 
-// Move forward
+// Forward movement
 plane.translateZ(speed);
 
-// Turn
+// Turning (bank)
 if(keys["a"]){
 plane.rotation.y += 0.03;
 plane.rotation.z = 0.4;
 }
+
 else if(keys["d"]){
 plane.rotation.y -= 0.03;
 plane.rotation.z = -0.4;
 }
+
 else{
 plane.rotation.z *= 0.9;
 }
 
-// Climb / descend
+// Climb
 if(keys[" "]){
 plane.position.y += 0.4;
+plane.rotation.x = -0.4;
 }
 
-if(keys["shift"]){
+// Descend
+else if(keys["shift"]){
 plane.position.y -= 0.4;
+plane.rotation.x = 0.4;
+}
+
+// Level out
+else{
+plane.rotation.x *= 0.9;
 }
 
 // Prevent underground
@@ -195,7 +204,7 @@ if(plane.position.y < 3){
 plane.position.y = 3;
 }
 
-// TRUE chase camera behind plane
+// Camera behind plane
 const offset = new THREE.Vector3(0,5,-12);
 offset.applyQuaternion(plane.quaternion);
 
@@ -221,7 +230,7 @@ renderer.render(scene,camera);
 
 animate();
 
-// Resize
+// Resize fix
 window.addEventListener("resize",()=>{
 camera.aspect=window.innerWidth/window.innerHeight;
 camera.updateProjectionMatrix();
