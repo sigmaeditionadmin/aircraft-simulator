@@ -47,7 +47,7 @@ const renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(window.innerWidth,window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// Light
+// Sun
 const sun = new THREE.DirectionalLight(0xffffff,1);
 sun.position.set(200,300,200);
 scene.add(sun);
@@ -135,6 +135,7 @@ const tail = new THREE.Mesh(
 new THREE.BoxGeometry(1,1,0.2),
 new THREE.MeshLambertMaterial({color:0xff3333})
 );
+
 tail.position.set(0,0.5,-2);
 plane.add(tail);
 
@@ -142,19 +143,15 @@ plane.position.set(0,12,0);
 
 scene.add(plane);
 
-// Camera
-camera.position.set(0,6,-12);
-
 // Controls
 const keys={};
 
 document.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true);
 document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
 
-// Flight physics
+// Flight
 let throttle = 0.3;
 let speed = 0.3;
-let verticalSpeed = 0;
 
 // Animation
 function animate(){
@@ -168,56 +165,48 @@ if(keys["s"]) throttle -= 0.004;
 throttle=Math.max(0.1,Math.min(1,throttle));
 speed=throttle;
 
-// Forward movement
+// Move forward
 plane.translateZ(speed);
 
-// Lift
-verticalSpeed += speed*0.01;
-
-// Gravity
-verticalSpeed -= 0.02;
-
-// Manual climb/descend
-if(keys[" "]) verticalSpeed += 0.05;
-if(keys["shift"]) verticalSpeed -= 0.05;
-
-plane.position.y += verticalSpeed;
-
-// Turning + banking
+// Turn
 if(keys["a"]){
 plane.rotation.y += 0.03;
 plane.rotation.z = 0.4;
 }
-
 else if(keys["d"]){
 plane.rotation.y -= 0.03;
 plane.rotation.z = -0.4;
 }
-
 else{
 plane.rotation.z *= 0.9;
 }
 
-// Ground protection
-if(plane.position.y < 3){
-plane.position.y = 3;
-verticalSpeed = 0;
+// Climb / descend
+if(keys[" "]){
+plane.position.y += 0.4;
 }
 
-// Camera follow
-const camTarget = new THREE.Vector3(
-plane.position.x,
-plane.position.y+6,
-plane.position.z-14
-);
+if(keys["shift"]){
+plane.position.y -= 0.4;
+}
 
-camera.position.lerp(camTarget,0.08);
+// Prevent underground
+if(plane.position.y < 3){
+plane.position.y = 3;
+}
+
+// TRUE chase camera behind plane
+const offset = new THREE.Vector3(0,5,-12);
+offset.applyQuaternion(plane.quaternion);
+
+const camPos = plane.position.clone().add(offset);
+
+camera.position.lerp(camPos,0.1);
 camera.lookAt(plane.position);
 
 // Move clouds
 clouds.forEach(c=>{
 c.position.x += c.userData.speed;
-
 if(c.position.x > 2000) c.position.x = -2000;
 });
 
@@ -232,7 +221,7 @@ renderer.render(scene,camera);
 
 animate();
 
-// Resize fix
+// Resize
 window.addEventListener("resize",()=>{
 camera.aspect=window.innerWidth/window.innerHeight;
 camera.updateProjectionMatrix();
