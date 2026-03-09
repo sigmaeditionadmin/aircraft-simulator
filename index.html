@@ -163,7 +163,7 @@ function animate(){
   });
 
   // Nose pitch: tilt only forward/back (X axis)
-  const targetPitch = THREE.MathUtils.clamp(verticalSpeed*2, -0.5, 0.5);
+  const targetPitch = THREE.MathUtils.clamp(-verticalSpeed*2, -0.5, 0.5); // flipped sign
   plane.rotation.x = THREE.MathUtils.lerp(plane.rotation.x, targetPitch, 0.1);
 
   // Keep Z rotation zero (no side tilt)
