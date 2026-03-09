@@ -84,26 +84,51 @@ for(let i=0;i<60;i++){
   scene.add(cloud);
 }
 
-// Plane
+// Fighter jet
 const plane = new THREE.Group();
-const body = new THREE.Mesh(
-  new THREE.BoxGeometry(1,0.5,4),
-  new THREE.MeshLambertMaterial({color:0xff3333})
+
+// Nose
+const nose = new THREE.Mesh(
+  new THREE.ConeGeometry(0.5, 2, 8),
+  new THREE.MeshLambertMaterial({color:0x5555ff})
 );
+nose.rotation.x = Math.PI / 2;
+nose.position.set(0,0,2);
+plane.add(nose);
+
+// Body
+const body = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.3, 0.3, 4, 8),
+  new THREE.MeshLambertMaterial({color:0x5555ff})
+);
+body.rotation.x = Math.PI / 2;
 plane.add(body);
 
-const wings = new THREE.Mesh(
-  new THREE.BoxGeometry(6,0.2,1),
-  new THREE.MeshLambertMaterial({color:0xff3333})
-);
+// Wings
+const wingGeom = new THREE.BoxGeometry(3,0.1,1);
+const wings = new THREE.Mesh(wingGeom, new THREE.MeshLambertMaterial({color:0x5555ff}));
 plane.add(wings);
 
-const tail = new THREE.Mesh(
-  new THREE.BoxGeometry(1,1,0.2),
-  new THREE.MeshLambertMaterial({color:0xff3333})
+// Tail fins
+const tailFin1 = new THREE.Mesh(
+  new THREE.BoxGeometry(0.1,0.8,0.2),
+  new THREE.MeshLambertMaterial({color:0x5555ff})
 );
-tail.position.set(0,0.5,-2);
-plane.add(tail);
+tailFin1.position.set(0,0.4,-2);
+plane.add(tailFin1);
+
+const tailFin2 = tailFin1.clone();
+tailFin2.position.set(0,-0.4,-2);
+plane.add(tailFin2);
+
+// Engine
+const engine = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.2,0.2,1,8),
+  new THREE.MeshLambertMaterial({color:0x222222})
+);
+engine.rotation.x = Math.PI/2;
+engine.position.set(0,0,-2.5);
+plane.add(engine);
 
 plane.position.set(0,20,0);
 scene.add(plane);
@@ -148,22 +173,26 @@ function animate(){
     verticalSpeed = 0;
   }
 
-  // Mountain collision (with altitude)
+  // Mountain collision
   mountains.forEach(m=>{
     const dx = plane.position.x - m.position.x;
     const dz = plane.position.z - m.position.z;
     const dist = Math.sqrt(dx*dx + dz*dz);
     if(dist < m.userData.radius){
-      const minY = m.position.y + 2;
-      if(plane.position.y < minY){
-        plane.position.y = minY;
-        verticalSpeed = 0;
-      }
+        const angle = Math.atan2(dz, dx);
+        plane.position.x = m.position.x + Math.cos(angle) * m.userData.radius;
+        plane.position.z = m.position.z + Math.sin(angle) * m.userData.radius;
+
+        const minY = m.position.y + 2; // stay above mountain
+        if(plane.position.y < minY){
+            plane.position.y = minY;
+            verticalSpeed = 0;
+        }
     }
   });
 
   // Nose pitch: tilt only forward/back (X axis)
-  const targetPitch = THREE.MathUtils.clamp(-verticalSpeed*2, -0.5, 0.5); // flipped sign
+  const targetPitch = THREE.MathUtils.clamp(-verticalSpeed*2, -0.5, 0.5);
   plane.rotation.x = THREE.MathUtils.lerp(plane.rotation.x, targetPitch, 0.1);
 
   // Keep Z rotation zero (no side tilt)
