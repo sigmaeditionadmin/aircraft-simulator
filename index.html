@@ -47,7 +47,7 @@ const renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(window.innerWidth,window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// Light
+// Sun
 const sun = new THREE.DirectionalLight(0xffffff,1);
 sun.position.set(500,800,500);
 scene.add(sun);
@@ -153,7 +153,7 @@ const keys={};
 document.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true);
 document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
 
-// Flight
+// Flight variables
 let throttle = 0.3;
 let speed = 0.3;
 let verticalSpeed = 0;
@@ -169,23 +169,23 @@ if(keys["s"]) throttle -= 0.004;
 throttle=Math.max(0.1,Math.min(1,throttle));
 speed=throttle;
 
-// Forward
+// Forward movement
 plane.translateZ(speed);
 
-// Turn (NO SIDE TILT)
+// Turn (no side tilt)
 if(keys["a"]) plane.rotation.y += 0.03;
 if(keys["d"]) plane.rotation.y -= 0.03;
 
 // Climb
 if(keys[" "]){
 verticalSpeed += 0.02;
-plane.rotation.x = -0.4;
+plane.rotation.x = 0.4;
 }
 
 // Descend
 else if(keys["shift"]){
 verticalSpeed -= 0.02;
-plane.rotation.x = 0.4;
+plane.rotation.x = -0.4;
 }
 
 // Level out
@@ -194,9 +194,10 @@ plane.rotation.x *= 0.9;
 verticalSpeed *= 0.95;
 }
 
+// Apply vertical movement
 plane.position.y += verticalSpeed;
 
-// Ground protection
+// Prevent underground
 if(plane.position.y < 3){
 plane.position.y = 3;
 verticalSpeed = 0;
@@ -230,7 +231,7 @@ const camPos = plane.position.clone().add(offset);
 camera.position.lerp(camPos,0.1);
 camera.lookAt(plane.position);
 
-// Clouds move
+// Move clouds
 clouds.forEach(c=>{
 c.position.x += c.userData.speed;
 if(c.position.x > 9000) c.position.x = -9000;
