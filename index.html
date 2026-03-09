@@ -39,7 +39,7 @@ const camera = new THREE.PerspectiveCamera(
 75,
 window.innerWidth/window.innerHeight,
 0.1,
-10000
+12000
 );
 
 // Renderer
@@ -47,12 +47,12 @@ const renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(window.innerWidth,window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// Light
+// Sun
 const sun = new THREE.DirectionalLight(0xffffff,1);
 sun.position.set(500,800,500);
 scene.add(sun);
 
-// Large ground
+// Big ground
 const groundGeo = new THREE.PlaneGeometry(12000,12000);
 const groundMat = new THREE.MeshLambertMaterial({color:0x2f8f2f});
 const ground = new THREE.Mesh(groundGeo,groundMat);
@@ -77,7 +77,6 @@ mountain.position.z = (Math.random()-0.5)*9000;
 mountain.position.y = height/2;
 
 mountain.userData.radius = radius;
-mountain.userData.height = height;
 
 mountains.push(mountain);
 scene.add(mountain);
@@ -154,9 +153,10 @@ const keys={};
 document.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true);
 document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
 
-// Flight
+// Flight variables
 let throttle = 0.3;
 let speed = 0.3;
+let verticalSpeed = 0;
 
 function animate(){
 
@@ -169,10 +169,10 @@ if(keys["s"]) throttle -= 0.004;
 throttle=Math.max(0.1,Math.min(1,throttle));
 speed=throttle;
 
-// Move forward
+// Forward movement
 plane.translateZ(speed);
 
-// Turning
+// Turn / bank
 if(keys["a"]){
 plane.rotation.y += 0.03;
 plane.rotation.z = 0.4;
@@ -187,53 +187,51 @@ plane.rotation.z *= 0.9;
 
 // Climb
 if(keys[" "]){
-plane.position.y += 0.5;
+verticalSpeed += 0.02;
 plane.rotation.x = -0.4;
 }
 
 // Descend
 else if(keys["shift"]){
-plane.position.y -= 0.5;
+verticalSpeed -= 0.02;
 plane.rotation.x = 0.4;
 }
 
+// Level out
 else{
 plane.rotation.x *= 0.9;
+verticalSpeed *= 0.95;
 }
+
+// Apply vertical movement
+plane.position.y += verticalSpeed;
 
 // Ground protection
 if(plane.position.y < 3){
 plane.position.y = 3;
+verticalSpeed = 0;
 }
 
-// Mountain collision (3D)
+// Mountain collision
 mountains.forEach(m=>{
 
 const dx = plane.position.x - m.position.x;
-const dy = plane.position.y - m.position.y;
 const dz = plane.position.z - m.position.z;
 
-const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+const dist = Math.sqrt(dx*dx + dz*dz);
 
-const collisionRadius = m.userData.radius;
+if(dist < m.userData.radius){
 
-if(dist < collisionRadius){
+const angle = Math.atan2(dz,dx);
 
-const push = (collisionRadius - dist) + 2;
-
-const nx = dx/dist;
-const ny = dy/dist;
-const nz = dz/dist;
-
-plane.position.x += nx * push;
-plane.position.y += ny * push;
-plane.position.z += nz * push;
+plane.position.x = m.position.x + Math.cos(angle)*m.userData.radius;
+plane.position.z = m.position.z + Math.sin(angle)*m.userData.radius;
 
 }
 
 });
 
-// Camera
+// Camera behind plane
 const offset = new THREE.Vector3(0,6,-14);
 offset.applyQuaternion(plane.quaternion);
 
