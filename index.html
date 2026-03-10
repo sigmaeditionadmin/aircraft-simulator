@@ -6,16 +6,17 @@
 <style>
 body{margin:0;overflow:hidden;font-family:monospace;}
 #hud{
-  position:absolute;
-  top:10px;
-  left:10px;
-  color:white;
-  background:rgba(0,0,0,0.5);
-  padding:10px;
+position:absolute;
+top:10px;
+left:10px;
+color:white;
+background:rgba(0,0,0,0.5);
+padding:10px;
 }
 </style>
 </head>
 <body>
+
 <div id="hud">
 Speed: <span id="speed">0</span><br>
 Altitude: <span id="alt">0</span><br>
@@ -23,14 +24,21 @@ Throttle: <span id="throttle">0</span>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+
 <script>
+
 // Scene
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87CEEB);
-scene.fog = new THREE.Fog(0x87CEEB, 500, 10000);
+scene.fog = new THREE.Fog(0x87CEEB,500,10000);
 
 // Camera
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 12000);
+const camera = new THREE.PerspectiveCamera(
+75,
+window.innerWidth/window.innerHeight,
+0.1,
+12000
+);
 
 // Renderer
 const renderer = new THREE.WebGLRenderer({antialias:true});
@@ -43,191 +51,232 @@ sun.position.set(500,800,500);
 scene.add(sun);
 
 // Ground
-const groundGeo = new THREE.PlaneGeometry(12000,12000);
-const groundMat = new THREE.MeshLambertMaterial({color:0x2f8f2f});
-const ground = new THREE.Mesh(groundGeo,groundMat);
+const ground = new THREE.Mesh(
+new THREE.PlaneGeometry(12000,12000),
+new THREE.MeshLambertMaterial({color:0x2f8f2f})
+);
 ground.rotation.x = -Math.PI/2;
 scene.add(ground);
 
 // Mountains
 const mountains=[];
 for(let i=0;i<80;i++){
-  const height = 120 + Math.random()*200;
-  const radius = 80 + Math.random()*120;
-  const mountain = new THREE.Mesh(
-    new THREE.ConeGeometry(radius,height,6),
-    new THREE.MeshLambertMaterial({color:0x777777})
-  );
-  mountain.position.x = (Math.random()-0.5)*9000;
-  mountain.position.z = (Math.random()-0.5)*9000;
-  mountain.position.y = height/2;
-  mountain.userData.radius = radius;
-  mountains.push(mountain);
-  scene.add(mountain);
+
+const height = 120 + Math.random()*200;
+const radius = 80 + Math.random()*120;
+
+const m = new THREE.Mesh(
+new THREE.ConeGeometry(radius,height,6),
+new THREE.MeshLambertMaterial({color:0x777777})
+);
+
+m.position.x=(Math.random()-0.5)*9000;
+m.position.z=(Math.random()-0.5)*9000;
+m.position.y=height/2;
+
+m.userData.radius=radius;
+
+mountains.push(m);
+scene.add(m);
+
 }
 
 // Clouds
 const clouds=[];
+
 for(let i=0;i<60;i++){
-  const cloud = new THREE.Group();
-  for(let j=0;j<6;j++){
-    const puff = new THREE.Mesh(
-      new THREE.SphereGeometry(6+Math.random()*6,8,8),
-      new THREE.MeshLambertMaterial({color:0xffffff})
-    );
-    puff.position.set((Math.random()-0.5)*20, Math.random()*5, (Math.random()-0.5)*20);
-    cloud.add(puff);
-  }
-  cloud.position.set((Math.random()-0.5)*9000, 150 + Math.random()*200, (Math.random()-0.5)*9000);
-  cloud.userData.speed = 0.03;
-  clouds.push(cloud);
-  scene.add(cloud);
+
+const cloud=new THREE.Group();
+
+for(let j=0;j<6;j++){
+
+const puff=new THREE.Mesh(
+new THREE.SphereGeometry(6+Math.random()*6,8,8),
+new THREE.MeshLambertMaterial({color:0xffffff})
+);
+
+puff.position.set(
+(Math.random()-0.5)*20,
+Math.random()*5,
+(Math.random()-0.5)*20
+);
+
+cloud.add(puff);
+
+}
+
+cloud.position.set(
+(Math.random()-0.5)*9000,
+150+Math.random()*200,
+(Math.random()-0.5)*9000
+);
+
+cloud.userData.speed=0.03;
+
+clouds.push(cloud);
+scene.add(cloud);
+
 }
 
 // Fighter jet
-const plane = new THREE.Group();
+const plane=new THREE.Group();
 
-// Nose
-const nose = new THREE.Mesh(
-  new THREE.ConeGeometry(0.5, 2, 8),
-  new THREE.MeshLambertMaterial({color:0x5555ff})
+// nose
+const nose=new THREE.Mesh(
+new THREE.ConeGeometry(0.5,2,8),
+new THREE.MeshLambertMaterial({color:0x5555ff})
 );
-nose.rotation.x = Math.PI / 2;
-nose.position.set(0,0,2);
+nose.rotation.x=Math.PI/2;
+nose.position.z=2;
 plane.add(nose);
 
-// Body
-const body = new THREE.Mesh(
-  new THREE.CylinderGeometry(0.3, 0.3, 4, 8),
-  new THREE.MeshLambertMaterial({color:0x5555ff})
+// body
+const body=new THREE.Mesh(
+new THREE.CylinderGeometry(0.3,0.3,4,8),
+new THREE.MeshLambertMaterial({color:0x5555ff})
 );
-body.rotation.x = Math.PI / 2;
+body.rotation.x=Math.PI/2;
 plane.add(body);
 
-// Wings
-const wingGeom = new THREE.BoxGeometry(3,0.1,1);
-const wings = new THREE.Mesh(wingGeom, new THREE.MeshLambertMaterial({color:0x5555ff}));
+// wings
+const wings=new THREE.Mesh(
+new THREE.BoxGeometry(3,0.1,1),
+new THREE.MeshLambertMaterial({color:0x5555ff})
+);
 plane.add(wings);
 
-// Tail fins
-const tailFin1 = new THREE.Mesh(
-  new THREE.BoxGeometry(0.1,0.8,0.2),
-  new THREE.MeshLambertMaterial({color:0x5555ff})
+// tail
+const tail=new THREE.Mesh(
+new THREE.BoxGeometry(0.2,0.9,0.2),
+new THREE.MeshLambertMaterial({color:0x5555ff})
 );
-tailFin1.position.set(0,0.4,-2);
-plane.add(tailFin1);
-
-const tailFin2 = tailFin1.clone();
-tailFin2.position.set(0,-0.4,-2);
-plane.add(tailFin2);
-
-// Engine
-const engine = new THREE.Mesh(
-  new THREE.CylinderGeometry(0.2,0.2,1,8),
-  new THREE.MeshLambertMaterial({color:0x222222})
-);
-engine.rotation.x = Math.PI/2;
-engine.position.set(0,0,-2.5);
-plane.add(engine);
+tail.position.set(0,0.45,-2);
+plane.add(tail);
 
 plane.position.set(0,20,0);
 scene.add(plane);
 
 // Controls
 const keys={};
-document.addEventListener("keydown", e => keys[e.key.toLowerCase()]=true);
-document.addEventListener("keyup", e => keys[e.key.toLowerCase()]=false);
+
+document.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true);
+document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
 
 // Flight variables
-let throttle = 0.3;
-let speed = 0.3;
-let verticalSpeed = 0;
+let throttle=0.3;
+let speed=0.3;
+let verticalSpeed=0;
 
 function animate(){
-  requestAnimationFrame(animate);
 
-  // Throttle control
-  if(keys["w"]) throttle += 0.004;
-  if(keys["s"]) throttle -= 0.004;
-  throttle = Math.max(0.1, Math.min(1, throttle));
-  speed = throttle;
+requestAnimationFrame(animate);
 
-  // Forward movement
-  plane.translateZ(speed);
+// throttle
+if(keys["w"]) throttle+=0.004;
+if(keys["s"]) throttle-=0.004;
 
-  // Turn (yaw only, no roll)
-  if(keys["a"]) plane.rotation.y += 0.03;
-  if(keys["d"]) plane.rotation.y -= 0.03;
+throttle=Math.max(0.1,Math.min(1,throttle));
+speed=throttle;
 
-  // Climb/descend
-  if(keys[" "]) verticalSpeed += 0.02;
-  else if(keys["shift"]) verticalSpeed -= 0.02;
-  else verticalSpeed *= 0.95;
+// forward
+plane.translateZ(speed);
 
-  // Apply vertical movement
-  plane.position.y += verticalSpeed;
+// turn
+if(keys["a"]) plane.rotation.y+=0.03;
+if(keys["d"]) plane.rotation.y-=0.03;
 
-  // Prevent underground
-  if(plane.position.y < 3){
-    plane.position.y = 3;
-    verticalSpeed = 0;
-  }
+// climb
+if(keys[" "]) verticalSpeed+=0.02;
 
-  // Mountain collision
-  mountains.forEach(m=>{
-    const dx = plane.position.x - m.position.x;
-    const dz = plane.position.z - m.position.z;
-    const dist = Math.sqrt(dx*dx + dz*dz);
-    if(dist < m.userData.radius){
-        const angle = Math.atan2(dz, dx);
-        plane.position.x = m.position.x + Math.cos(angle) * m.userData.radius;
-        plane.position.z = m.position.z + Math.sin(angle) * m.userData.radius;
+// descend
+else if(keys["shift"]) verticalSpeed-=0.02;
 
-        const minY = m.position.y + 2; // stay above mountain
-        if(plane.position.y < minY){
-            plane.position.y = minY;
-            verticalSpeed = 0;
-        }
-    }
-  });
+// stabilize
+else verticalSpeed*=0.95;
 
-  // Nose pitch: tilt only forward/back (X axis)
-  const targetPitch = THREE.MathUtils.clamp(-verticalSpeed*2, -0.5, 0.5);
-  plane.rotation.x = THREE.MathUtils.lerp(plane.rotation.x, targetPitch, 0.1);
+// apply vertical
+plane.position.y+=verticalSpeed;
 
-  // Keep Z rotation zero (no side tilt)
-  plane.rotation.z = 0;
+// prevent underground
+if(plane.position.y<3){
 
-  // Camera behind plane
-  const offset = new THREE.Vector3(0,6,-14);
-  offset.applyQuaternion(plane.quaternion);
-  const camPos = plane.position.clone().add(offset);
-  camera.position.lerp(camPos,0.1);
-  camera.lookAt(plane.position);
+plane.position.y=3;
+verticalSpeed=0;
 
-  // Move clouds
-  clouds.forEach(c=>{
-    c.position.x += c.userData.speed;
-    if(c.position.x > 9000) c.position.x = -9000;
-  });
+}
 
-  // HUD
-  document.getElementById("speed").innerText = (speed*200).toFixed(0);
-  document.getElementById("alt").innerText = plane.position.y.toFixed(0);
-  document.getElementById("throttle").innerText = Math.round(throttle*100);
+// mountain collision
+mountains.forEach(m=>{
 
-  // Render
-  renderer.render(scene,camera);
+const dx=plane.position.x-m.position.x;
+const dz=plane.position.z-m.position.z;
+
+const dist=Math.sqrt(dx*dx+dz*dz);
+
+if(dist<m.userData.radius){
+
+const angle=Math.atan2(dz,dx);
+
+plane.position.x=m.position.x+Math.cos(angle)*m.userData.radius;
+plane.position.z=m.position.z+Math.sin(angle)*m.userData.radius;
+
+const minY=m.position.y+2;
+
+if(plane.position.y<minY){
+
+plane.position.y=minY;
+verticalSpeed=0;
+
+}
+
+}
+
+});
+
+// pitch (nose up/down only)
+const targetPitch=THREE.MathUtils.clamp(-verticalSpeed*2,-0.6,0.6);
+plane.rotation.x=THREE.MathUtils.lerp(plane.rotation.x,targetPitch,0.1);
+
+// lock roll completely
+plane.rotation.z=0;
+
+// camera
+const offset=new THREE.Vector3(0,6,-14);
+offset.applyQuaternion(plane.quaternion);
+
+const camPos=plane.position.clone().add(offset);
+
+camera.position.lerp(camPos,0.1);
+camera.lookAt(plane.position);
+
+// clouds move
+clouds.forEach(c=>{
+c.position.x+=c.userData.speed;
+if(c.position.x>9000) c.position.x=-9000;
+});
+
+// HUD
+document.getElementById("speed").innerText=(speed*200).toFixed(0);
+document.getElementById("alt").innerText=plane.position.y.toFixed(0);
+document.getElementById("throttle").innerText=Math.round(throttle*100);
+
+// render
+renderer.render(scene,camera);
+
 }
 
 animate();
 
-// Resize
+// resize
 window.addEventListener("resize",()=>{
-  camera.aspect = window.innerWidth/window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth,window.innerHeight);
+
+camera.aspect=window.innerWidth/window.innerHeight;
+camera.updateProjectionMatrix();
+renderer.setSize(window.innerWidth,window.innerHeight);
+
 });
+
 </script>
+
 </body>
 </html>
