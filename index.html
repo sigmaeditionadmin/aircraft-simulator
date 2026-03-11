@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>F16 Simulator with Trees & Clouds</title>
+<title>F16 Simulator with Visible Trees & Clouds</title>
 
 <style>
 body{margin:0;overflow:hidden;background:black;font-family:monospace;}
@@ -31,7 +31,6 @@ pointer-events:none;
 </style>
 
 </head>
-
 <body>
 
 <div id="hud">
@@ -42,7 +41,6 @@ Altitude: <span id="alt">0</span>
 <div id="crosshair"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-
 <script>
 
 /////////////////////////
@@ -92,19 +90,16 @@ const terrain = new THREE.Mesh(
 terrainGeo,
 new THREE.MeshLambertMaterial({color:0x2f8f2f})
 );
-
 scene.add(terrain);
 
 /////////////////////////
-// CLOUDS (MORE DENSE)
+// CLOUDS
 /////////////////////////
 
 const clouds = [];
 
-for (let i = 0; i < 120; i++) { // more clouds
-
+for (let i = 0; i < 150; i++) { // more clouds
     const cloud = new THREE.Group();
-
     for (let j = 0; j < 6; j++) {
         const puff = new THREE.Mesh(
             new THREE.SphereGeometry(6 + Math.random() * 6, 8, 8),
@@ -117,13 +112,11 @@ for (let i = 0; i < 120; i++) { // more clouds
         );
         cloud.add(puff);
     }
-
     cloud.position.set(
         (Math.random() - 0.5) * 15000,
         250 + Math.random() * 350,
         (Math.random() - 0.5) * 15000
     );
-
     cloud.userData.speed = 0.05;
     clouds.push(cloud);
     scene.add(cloud);
@@ -134,6 +127,8 @@ for (let i = 0; i < 120; i++) { // more clouds
 /////////////////////////
 
 const trees = [];
+const terrainSize = 20000;
+const segments = 200;
 
 for (let i = 0; i < 300; i++) {
 
@@ -145,6 +140,7 @@ for (let i = 0; i < 300; i++) {
         new THREE.MeshLambertMaterial({ color: 0x8B4513 })
     );
     trunk.position.y = 1.5;
+    trunk.scale.set(2,2,2); // bigger
     tree.add(trunk);
 
     // foliage
@@ -153,13 +149,18 @@ for (let i = 0; i < 300; i++) {
         new THREE.MeshLambertMaterial({ color: 0x228B22 })
     );
     foliage.position.y = 4;
+    foliage.scale.set(2,2,2); // bigger
     tree.add(foliage);
 
-    // scatter over terrain
-    const x = (Math.random() - 0.5) * 18000;
-    const z = (Math.random() - 0.5) * 18000;
+    // random X,Z
+    const x = (Math.random() - 0.5) * terrainSize * 0.9;
+    const z = (Math.random() - 0.5) * terrainSize * 0.9;
 
-    const terrainHeight = Math.sin(x * 0.002) * 120 + Math.cos(z * 0.002) * 120 + Math.random() * 20;
+    // convert to vertex indices
+    const ix = Math.floor((x + terrainSize/2) / terrainSize * segments);
+    const iz = Math.floor((z + terrainSize/2) / terrainSize * segments);
+    const idx = iz * (segments + 1) + ix;
+    const terrainHeight = verts.getY(idx);
 
     tree.position.set(x, terrainHeight, z);
 
@@ -173,7 +174,6 @@ for (let i = 0; i < 300; i++) {
 
 const yawGroup = new THREE.Group();
 const pitchGroup = new THREE.Group();
-
 yawGroup.add(pitchGroup);
 scene.add(yawGroup);
 
