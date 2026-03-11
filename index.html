@@ -45,39 +45,45 @@ Altitude: <span id="alt">0</span>
 
 <script>
 
-const scene=new THREE.Scene();
-scene.background=new THREE.Color(0x87CEEB);
+/////////////////////////
+// SCENE
+/////////////////////////
 
-const camera=new THREE.PerspectiveCamera(
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87CEEB);
+
+const camera = new THREE.PerspectiveCamera(
 75,
 window.innerWidth/window.innerHeight,
 0.1,
 20000
 );
 
-const renderer=new THREE.WebGLRenderer({antialias:true});
+const renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(window.innerWidth,window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-const sun=new THREE.DirectionalLight(0xffffff,1);
+const sun = new THREE.DirectionalLight(0xffffff,1);
 sun.position.set(500,800,500);
 scene.add(sun);
 
-/////////////////////////////////////////////////
-// TERRAIN
-/////////////////////////////////////////////////
+/////////////////////////
+// TERRAIN (FIXED)
+/////////////////////////
 
-const terrainGeo=new THREE.PlaneGeometry(20000,20000,200,200);
-const verts=terrainGeo.attributes.position;
+const terrainGeo = new THREE.PlaneGeometry(20000,20000,200,200);
+terrainGeo.rotateX(-Math.PI/2);
+
+const verts = terrainGeo.attributes.position;
 
 for(let i=0;i<verts.count;i++){
 
-const x=verts.getX(i);
-const z=verts.getZ(i);
+const x = verts.getX(i);
+const z = verts.getZ(i);
 
-const height=
-Math.sin(x*0.001)*80+
-Math.cos(z*0.001)*80+
+const height =
+Math.sin(x*0.002)*120 +
+Math.cos(z*0.002)*120 +
 Math.random()*20;
 
 verts.setY(i,height);
@@ -86,17 +92,16 @@ verts.setY(i,height);
 
 terrainGeo.computeVertexNormals();
 
-const terrain=new THREE.Mesh(
+const terrain = new THREE.Mesh(
 terrainGeo,
 new THREE.MeshLambertMaterial({color:0x2f8f2f})
 );
 
-terrain.rotation.x=-Math.PI/2;
 scene.add(terrain);
 
-/////////////////////////////////////////////////
+/////////////////////////
 // CLOUDS
-/////////////////////////////////////////////////
+/////////////////////////
 
 const clouds=[];
 
@@ -134,9 +139,9 @@ scene.add(cloud);
 
 }
 
-/////////////////////////////////////////////////
+/////////////////////////
 // FLIGHT GROUPS
-/////////////////////////////////////////////////
+/////////////////////////
 
 const yawGroup=new THREE.Group();
 const pitchGroup=new THREE.Group();
@@ -144,9 +149,9 @@ const pitchGroup=new THREE.Group();
 yawGroup.add(pitchGroup);
 scene.add(yawGroup);
 
-/////////////////////////////////////////////////
-// F16 JET MODEL
-/////////////////////////////////////////////////
+/////////////////////////
+// F16 STYLE JET
+/////////////////////////
 
 const jet=new THREE.Group();
 
@@ -155,7 +160,6 @@ const body=new THREE.Mesh(
 new THREE.CylinderGeometry(0.5,0.5,7,12),
 new THREE.MeshLambertMaterial({color:0x888888})
 );
-
 body.rotation.x=Math.PI/2;
 jet.add(body);
 
@@ -164,7 +168,6 @@ const nose=new THREE.Mesh(
 new THREE.ConeGeometry(0.4,2.5,12),
 new THREE.MeshLambertMaterial({color:0x888888})
 );
-
 nose.rotation.x=Math.PI/2;
 nose.position.z=4.5;
 jet.add(nose);
@@ -174,7 +177,6 @@ const canopy=new THREE.Mesh(
 new THREE.SphereGeometry(0.6,12,12),
 new THREE.MeshLambertMaterial({color:0x223344})
 );
-
 canopy.scale.set(1,0.6,1.5);
 canopy.position.set(0,0.6,1.5);
 jet.add(canopy);
@@ -184,7 +186,6 @@ const intake=new THREE.Mesh(
 new THREE.BoxGeometry(0.8,0.4,1),
 new THREE.MeshLambertMaterial({color:0x555555})
 );
-
 intake.position.set(0,-0.4,1.5);
 jet.add(intake);
 
@@ -193,8 +194,6 @@ const wings=new THREE.Mesh(
 new THREE.BoxGeometry(8,0.1,2),
 new THREE.MeshLambertMaterial({color:0x888888})
 );
-
-wings.position.z=0;
 jet.add(wings);
 
 // tail stabilizers
@@ -202,7 +201,6 @@ const rearWing=new THREE.Mesh(
 new THREE.BoxGeometry(3,0.1,1),
 new THREE.MeshLambertMaterial({color:0x888888})
 );
-
 rearWing.position.z=-2.5;
 jet.add(rearWing);
 
@@ -211,7 +209,6 @@ const tail=new THREE.Mesh(
 new THREE.BoxGeometry(0.2,2,1),
 new THREE.MeshLambertMaterial({color:0x888888})
 );
-
 tail.position.set(0,1,-2.8);
 jet.add(tail);
 
@@ -238,65 +235,76 @@ const flame=new THREE.Mesh(
 new THREE.ConeGeometry(0.4,1.5,12),
 new THREE.MeshBasicMaterial({color:0xff5500})
 );
-
 flame.rotation.x=-Math.PI/2;
 flame.position.z=-4;
-
 jet.add(flame);
 
 pitchGroup.add(jet);
 
 yawGroup.position.set(0,200,0);
 
-/////////////////////////////////////////////////
+/////////////////////////
 // CONTROLS
-/////////////////////////////////////////////////
+/////////////////////////
 
 const keys={};
 
 document.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true);
 document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
 
-/////////////////////////////////////////////////
-// FLIGHT
-/////////////////////////////////////////////////
+/////////////////////////
+// FLIGHT VARIABLES
+/////////////////////////
 
 let throttle=0.4;
 let speed=0.4;
 let verticalSpeed=0;
 let pitch=0;
 
+/////////////////////////
+// ANIMATION
+/////////////////////////
+
 function animate(){
 
 requestAnimationFrame(animate);
 
+// throttle
 if(keys["w"]) throttle+=0.004;
 if(keys["s"]) throttle-=0.004;
 
 throttle=Math.max(0.1,Math.min(1,throttle));
 speed=throttle;
 
+// forward
 yawGroup.translateZ(speed);
 
+// turning
 if(keys["a"]) yawGroup.rotation.y+=0.025;
 if(keys["d"]) yawGroup.rotation.y-=0.025;
 
+// climb / descend
 if(keys[" "]) verticalSpeed+=0.03;
 else if(keys["shift"]) verticalSpeed-=0.03;
 else verticalSpeed*=0.96;
 
 yawGroup.position.y+=verticalSpeed;
 
+// prevent ground clipping
 if(yawGroup.position.y<10){
 yawGroup.position.y=10;
 verticalSpeed=0;
 }
 
+// pitch (no sideways tilt)
 const targetPitch=THREE.MathUtils.clamp(-verticalSpeed*1.5,-0.6,0.6);
 pitch=THREE.MathUtils.lerp(pitch,targetPitch,0.1);
 pitchGroup.rotation.x=pitch;
 
-// camera
+/////////////////////////
+// CAMERA
+/////////////////////////
+
 const offset=new THREE.Vector3(0,7,-18);
 offset.applyQuaternion(yawGroup.quaternion);
 
@@ -305,13 +313,19 @@ const camPos=yawGroup.position.clone().add(offset);
 camera.position.lerp(camPos,0.1);
 camera.lookAt(yawGroup.position);
 
-// clouds
+/////////////////////////
+// CLOUDS
+/////////////////////////
+
 clouds.forEach(c=>{
 c.position.x+=c.userData.speed;
 if(c.position.x>15000)c.position.x=-15000;
 });
 
+/////////////////////////
 // HUD
+/////////////////////////
+
 document.getElementById("speed").innerText=(speed*250).toFixed(0);
 document.getElementById("alt").innerText=yawGroup.position.y.toFixed(0);
 
@@ -320,6 +334,10 @@ renderer.render(scene,camera);
 }
 
 animate();
+
+/////////////////////////
+// RESIZE
+/////////////////////////
 
 window.addEventListener("resize",()=>{
 camera.aspect=window.innerWidth/window.innerHeight;
